@@ -43,8 +43,8 @@ class AppWindow(QMainWindow):
         except Exception as e:
             print(str(e))
             self.lightboard = GenericLightboard()
-        self.spotlight = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=61)
-        self.spotlightClose = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=51)
+        self.spot1 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=76)
+        self.spot2 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=51)
         self.par38 = [Par38(self.lightboard, channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]]
         self.par64 = [Par64(self.lightboard, channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]]
         self.uiThreadFunctions = []
@@ -76,6 +76,8 @@ class AppWindow(QMainWindow):
         self.lightboard.update()
         if self.frame is not None and self.drawFrames:
             self.setCv2Frame(self.frame)
+        if not self.drawFrames:
+            self.imageView.clear()
 
     def executeOnUiThread(self, f):
         self.uiThreadFunctions.append(f)
@@ -110,8 +112,17 @@ class AppWindow(QMainWindow):
             self.startPerformance()
 
     def secondaryTest(self):
+        def stopTest():
+            self.stop()
+            self.blackoutVideo()
+            self.frame = None
         self.start()
-        self.shutdown()
+        self.flickerFixtureRandomlyUntil(self.spot1, 10)
+        self.flickerFixtureRandomlyUntil(self.spot2, 10)
+        self.executeOnUiThread(f=lambda: self.stream())
+        self.ableton.playClip('official test')
+        self.timeline.cueInSeconds(4, f=lambda: self.muteEffect(4))
+        self.timeline.cueInSeconds(10, lambda: stopTest())
 
     def startPerformance(self):
         self.lightboard.blackout()
@@ -135,8 +146,8 @@ class AppWindow(QMainWindow):
             self.drawFrames = True
         else:
             self.setMasterFilterFrequency(0)
-            self.blackoutVideo()
             self.drawFrames = False
+            self.blackoutVideo()
     def muteEffect(self, duration=None, beats=None):
         self.toggleAudioVisual(False)
         if duration is not None:
@@ -170,7 +181,8 @@ class AppWindow(QMainWindow):
         self.bootupSound()
         t = self.flickerEverything()
         self.timeline.cueInSeconds(t, lambda: pingPongBootup(Ableton.ZERO_DB))
-        self.timeline.cueInSeconds(t, action=self.fadeFixture(self.spotlight, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueInSeconds(t, action=self.fadeFixture(self.spot1, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueInSeconds(t, action=self.fadeFixture(self.spot2, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
 
     def sweepEffect(self):
         # time it takes to enter effect
@@ -185,13 +197,16 @@ class AppWindow(QMainWindow):
         # filter sweep master MAX to 0.5 * MAX
         self.timeline.cue(action=self.filterSweepMaster(sweepDuration, Ableton.MAX_FILTER_FREQUENCY, minFrequency))
         # fade out lights
-        self.timeline.cue(action=self.fadeFixture(self.spotlight, sweepDuration, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cue(action=self.fadeFixture(self.spot1, sweepDuration, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cue(action=self.fadeFixture(self.spot2, sweepDuration, DmxLightboard.MAX_VALUE, 0))
         # flash a light
-        self.timeline.cueInSeconds(flickerFixture, f=self.flickerFixture(self.spotlight, 0.5))
+        self.timeline.cueInSeconds(flickerFixture, f=self.flickerFixture(self.spot1, 0.5))
+        self.timeline.cueInSeconds(flickerFixture, f=self.flickerFixture(self.spot2, 0.5))
         # filter sweep master 0.5 * MAX to MAX
         self.timeline.cueInSeconds(reentry, action=self.filterSweepMaster(reentryDuration, minFrequency, Ableton.MAX_FILTER_FREQUENCY))
         # fade in lights
-        self.timeline.cueInSeconds(reentry, action=self.fadeFixture(self.spotlight, reentryDuration, 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueInSeconds(reentry, action=self.fadeFixture(self.spot1, reentryDuration, 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueInSeconds(reentry, action=self.fadeFixture(self.spot2, reentryDuration, 0, DmxLightboard.MAX_VALUE))
         return reentry + reentryDuration
 
     def playPiano(self, clipNumber):
@@ -213,22 +228,18 @@ class AppWindow(QMainWindow):
     def normalOperations(self):
         self.executeOnUiThread(lambda: self.stream())
         self.timeline.cue(f=lambda: self.ableton.playClip('Modular UI'))
-        self.timeline.cue(f=lambda: self.ableton.getTrack('slack').play_clip(name='3'))
         self.timeline.cue(f=lambda: self.ableton.playClip('machine belt 2'))
-        self.timeline.cue(f=lambda: self.ableton.playClip('dreams tonite'))
+        self.timeline.cue(f=lambda: self.ableton.getTrack('dreams tonite').play_clip(name='tech bro'))
+        self.timeline.cueInBeats(8, f=lambda: self.ableton.getTrack('slack').play_clip(name='3'))
         slackClipLength = 8 * 4
         self.timeline.cueInBeats(slackClipLength, f=lambda: self.ableton.getTrack('slack').play_clip(name='2'))
-        self.timeline.cueInBeats(slackClipLength, f=lambda: self.ableton.playClip('808'))
         self.timeline.cueInBeats(2 * slackClipLength, f=lambda: self.ableton.getTrack('slack').play_clip(name='1'))
-        random.seed()
-        seconds = 15
-        while seconds < 8 * AppWindow.ONE_MINUTE:
-            self.timeline.cueInSeconds(seconds, f=lambda: self.flickerFixture(self.spotlight, 0.3))
-            seconds += random.uniform(15, AppWindow.ONE_MINUTE)
+        self.flickerFixtureRandomlyUntil(self.spot1, 8 * AppWindow.ONE_MINUTE)
         self.timeline.cueInSeconds(3 * AppWindow.ONE_MINUTE, f=self.playCopywold)
         self.timeline.cueInSeconds(6 * AppWindow.ONE_MINUTE, f=self.playOfficeSpacePrinter)
         self.timeline.cueInSeconds(8 * AppWindow.ONE_MINUTE, f=self.shutdown)
-        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.fadeFixture(self.spotlightClose, 5, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.fadeFixture(self.spot1, 5, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.fadeFixture(self.spot2, 5, DmxLightboard.MAX_VALUE, 0))
         self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.filterSweepMaster(1, Ableton.MAX_FILTER_FREQUENCY, Ableton.MIN_FILTER_FREQUENCY))
         self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, f=self.stopPerformance)
 
@@ -243,6 +254,7 @@ class AppWindow(QMainWindow):
             self.ableton.setBpm(bpm)
             self.executeOnUiThread(lambda: self.frameTimer.start(self.ableton.millisecondsPerBeat(bpm)))
         def body():
+            self.timeline.cue(f=lambda: self.ableton.playClip('808'))
             track = self.ableton.getTrack('test')
             # startVolume = Ableton.ZERO_DB * 0.5
             # track.volume = startVolume
@@ -266,10 +278,10 @@ class AppWindow(QMainWindow):
     def playOfficeSpacePrinter(self):
         def sweepAndFlicker():
             self.sweepEffect()
-            self.flicker(4)
+            self.executeOnUiThread(f=lambda: self.flicker(4))
         def restartWavetable():
             self.ableton.playClip('Wavetable')
-            self.flicker(4)
+            self.executeOnUiThread(f=lambda: self.flicker(4))
         self.executeOnUiThread(lambda: self.stream())
         self.ableton.setBpm(40)
         # self.ableton.getGroup('=Office Space Printer').volume = 0
@@ -292,6 +304,13 @@ class AppWindow(QMainWindow):
         def updateFunction(value):
             track.volume = value
         return LerpAction(durationSeconds, updateFunction, startLevel, endLevel)
+
+    def flickerFixtureRandomlyUntil(self, fixture, end, minStride=15, maxStride=ONE_MINUTE):
+        random.seed()
+        t = minStride
+        while t < end:
+            self.timeline.cueInSeconds(t, f=lambda: self.flickerFixture(fixture, 0.3))
+            t += random.uniform(minStride, maxStride)
 
     def flickerFixtureRandomly(self, fixture, times=1):
         t = 0.0
@@ -335,16 +354,17 @@ class AppWindow(QMainWindow):
         self.ableton.zeroAllTrackVolumes()
         self.ableton.play()
         officalTestTrack = self.ableton.getTrack('official test')
-        officalTestTrack.play_clip(name='tone')
-        self.timeline.cue(f=lambda: self.flickerFixtureRandomly(self.spotlightClose, times=5))
+        officalTestTrack.play_clip(name='official test')
+        self.timeline.cue(f=lambda: self.flickerFixtureRandomly(self.spot1, times=5))
         self.timeline.cue(action=self.fadeVolume(officalTestTrack, 0, Ableton.ZERO_DB))
         self.timeline.cueInSeconds(testLength/2, action=self.fadeVolume(officalTestTrack, testLength/2, Ableton.ZERO_DB, 0))
-        self.timeline.cue(action=self.fadeFixture(self.spotlight, testLength/2, 0, DmxLightboard.MAX_VALUE))
-        self.timeline.cueInSeconds(testLength/2, action=self.fadeFixture(self.spotlight, testLength/2, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cue(action=self.fadeFixture(self.spot1, testLength/2, 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueInSeconds(testLength/2, action=self.fadeFixture(self.spot1, testLength/2, DmxLightboard.MAX_VALUE, 0))
         self.timeline.cueInSeconds(testLength, f=stopTest)
         self.executeOnUiThread(lambda: self.stream())
 
     def stopVideo(self):
+        print('stopVideo')
         if self.frameTimer is not None:
             self.frameTimer.stop()
             self.frameTimer = None
@@ -362,13 +382,14 @@ class AppWindow(QMainWindow):
         self.makeTimer(milliseconds, onTimeout)
 
     def stream(self):
+        print('stream')
         def onTimeout():
             self.frame = self.videoBuffer.get_last()
         milliseconds = MILLISECONDS_IN_SECOND / (self.videoBuffer.get_max_fps())
         self.makeTimer(milliseconds, onTimeout)
 
     def jitter(self, tickMilliseconds: float = 150.0):
-        print(tickMilliseconds)
+        print('jitter {}'.format(tickMilliseconds))
         def onTimeout():
             self.frame = self.videoBuffer.get_last()
         self.makeTimer(tickMilliseconds, onTimeout)
