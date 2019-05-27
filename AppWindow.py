@@ -121,8 +121,8 @@ class AppWindow(QMainWindow):
         self.flickerFixtureRandomlyUntil(self.spot2, 10)
         self.executeOnUiThread(f=lambda: self.stream())
         self.ableton.playClip('official test')
-        self.timeline.cueInSeconds(4, f=lambda: self.muteEffect(4))
-        self.timeline.cueInSeconds(10, lambda: stopTest())
+        self.timeline.cueIn(Seconds(4), lambda: self.muteEffect(Seconds(4)))
+        self.timeline.cueIn(Seconds(10), lambda: stopTest())
 
     def startPerformance(self):
         self.lightboard.blackout()
@@ -148,12 +148,9 @@ class AppWindow(QMainWindow):
             self.setMasterFilterFrequency(0)
             self.drawFrames = False
             self.blackoutVideo()
-    def muteEffect(self, duration=None, beats=None):
+    def muteEffect(self, duration):
         self.toggleAudioVisual(False)
-        if duration is not None:
-            self.timeline.cueInSeconds(duration, f=lambda: self.toggleAudioVisual(True))
-        elif beats is not None:
-            self.timeline.cueInBeats(beats, f=lambda: self.toggleAudioVisual(True))
+        self.timeline.cueIn(duration, lambda: self.toggleAudioVisual(True))
 
     def setBeatRepeat(self, enabled: bool):
         self.ableton.getTrack('bootup').get_device('Beat Repeat').enabled = enabled
@@ -174,15 +171,15 @@ class AppWindow(QMainWindow):
             self.ableton.getTrack('bootup').volume = bootupVolume
             self.bootupSound()
             self.executeOnUiThread(lambda: self.flicker(self.ableton.beatsToSeconds(4)))
-            self.timeline.cueInBeats(4, f=lambda: pingPongBootup(bootupVolume * 0.75))
+            self.timeline.cueIn(Beats(4), lambda: pingPongBootup(bootupVolume * 0.75))
         self.setBeatRepeat(False)
         self.setPingPong(False)
         self.setFreeze(False)
         self.bootupSound()
         t = self.flickerEverything()
-        self.timeline.cueInSeconds(t, lambda: pingPongBootup(Ableton.ZERO_DB))
-        self.timeline.cueInSeconds(t, action=self.fadeFixture(self.spot1, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
-        self.timeline.cueInSeconds(t, action=self.fadeFixture(self.spot2, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueIn(t, lambda: pingPongBootup(Ableton.ZERO_DB))
+        self.timeline.cueIn(t, action=self.fadeFixture(self.spot1, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueIn(t, action=self.fadeFixture(self.spot2, self.ableton.beatsToSeconds(4 * AppWindow.BOOTUP_REPEATS), 0, DmxLightboard.MAX_VALUE))
 
     def sweepEffect(self):
         # time it takes to enter effect
@@ -200,61 +197,63 @@ class AppWindow(QMainWindow):
         self.timeline.cue(action=self.fadeFixture(self.spot1, sweepDuration, DmxLightboard.MAX_VALUE, 0))
         self.timeline.cue(action=self.fadeFixture(self.spot2, sweepDuration, DmxLightboard.MAX_VALUE, 0))
         # flash a light
-        self.timeline.cueInSeconds(flickerFixture, f=self.flickerFixture(self.spot1, 0.5))
-        self.timeline.cueInSeconds(flickerFixture, f=self.flickerFixture(self.spot2, 0.5))
+        self.timeline.cueIn(Seconds(flickerFixture), lambda: self.flickerFixture(self.spot1, 0.5))
+        self.timeline.cueIn(Seconds(flickerFixture), lambda: self.flickerFixture(self.spot2, 0.5))
         # filter sweep master 0.5 * MAX to MAX
-        self.timeline.cueInSeconds(reentry, action=self.filterSweepMaster(reentryDuration, minFrequency, Ableton.MAX_FILTER_FREQUENCY))
+        self.timeline.cueIn(Seconds(reentry), self.filterSweepMaster(reentryDuration, minFrequency, Ableton.MAX_FILTER_FREQUENCY))
         # fade in lights
-        self.timeline.cueInSeconds(reentry, action=self.fadeFixture(self.spot1, reentryDuration, 0, DmxLightboard.MAX_VALUE))
-        self.timeline.cueInSeconds(reentry, action=self.fadeFixture(self.spot2, reentryDuration, 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueIn(Seconds(reentry), self.fadeFixture(self.spot1, reentryDuration, 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueIn(Seconds(reentry), self.fadeFixture(self.spot2, reentryDuration, 0, DmxLightboard.MAX_VALUE))
         return reentry + reentryDuration
 
     def playPiano(self, clipNumber):
         piano = self.ableton.getTrack('grand piano')
         piano.play_clip(name=str(clipNumber))
+
     def shutdown(self):
         fadeVolumeToQuietDuration = 25
         fadeVolumeOutDuration = 5
         quiet = Ableton.ZERO_DB * 0.45
         self.playPiano(5)
-        self.timeline.cue(action=self.fadeVolume(self.ableton.getGroup('=Office Space Printer'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
-        self.timeline.cue(action=self.fadeVolume(self.ableton.getGroup('=Copywold'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
-        self.timeline.cue(action=self.fadeVolume(self.ableton.getGroup('=Ambient Foley'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
-        self.timeline.cue(action=self.fadeVolume(self.ableton.getGroup('=Beats'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
-        self.timeline.cueInSeconds(fadeVolumeToQuietDuration, action=self.fadeVolume(self.ableton.getGroup('=Office Space Printer'), fadeVolumeOutDuration, quiet, 0))
-        self.timeline.cueInSeconds(fadeVolumeToQuietDuration, action=self.fadeVolume(self.ableton.getGroup('=Copywold'), fadeVolumeOutDuration, quiet, 0))
-        self.timeline.cueInSeconds(fadeVolumeToQuietDuration, action=self.fadeVolume(self.ableton.getGroup('=Ambient Foley'), fadeVolumeOutDuration, quiet, 0))
-        self.timeline.cueInSeconds(fadeVolumeToQuietDuration, action=self.fadeVolume(self.ableton.getGroup('=Beats'), fadeVolumeOutDuration, quiet, 0))
+        self.timeline.cue(self.fadeVolume(self.ableton.getGroup('=Office Space Printer'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
+        self.timeline.cue(self.fadeVolume(self.ableton.getGroup('=Copywold'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
+        self.timeline.cue(self.fadeVolume(self.ableton.getGroup('=Ambient Foley'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
+        self.timeline.cue(self.fadeVolume(self.ableton.getGroup('=Beats'), fadeVolumeToQuietDuration, Ableton.ZERO_DB, quiet))
+        self.timeline.cueIn(Seconds(fadeVolumeToQuietDuration), self.fadeVolume(self.ableton.getGroup('=Office Space Printer'), fadeVolumeOutDuration, quiet, 0))
+        self.timeline.cueIn(Seconds(fadeVolumeToQuietDuration), self.fadeVolume(self.ableton.getGroup('=Copywold'), fadeVolumeOutDuration, quiet, 0))
+        self.timeline.cueIn(Seconds(fadeVolumeToQuietDuration), self.fadeVolume(self.ableton.getGroup('=Ambient Foley'), fadeVolumeOutDuration, quiet, 0))
+        self.timeline.cueIn(Seconds(fadeVolumeToQuietDuration), self.fadeVolume(self.ableton.getGroup('=Beats'), fadeVolumeOutDuration, quiet, 0))
+
     def normalOperations(self):
         self.executeOnUiThread(lambda: self.stream())
-        self.timeline.cue(f=lambda: self.ableton.playClip('Modular UI'))
-        self.timeline.cue(f=lambda: self.ableton.playClip('machine belt 2'))
-        self.timeline.cue(f=lambda: self.ableton.getTrack('dreams tonite').play_clip(name='tech bro'))
-        self.timeline.cueInBeats(8, f=lambda: self.ableton.getTrack('slack').play_clip(name='3'))
+        self.timeline.cue(lambda: self.ableton.playClip('Modular UI'))
+        self.timeline.cue(lambda: self.ableton.playClip('machine belt 2'))
+        self.timeline.cue(lambda: self.ableton.getTrack('dreams tonite').play_clip(name='tech bro'))
+        self.timeline.cueIn(Beats(8), lambda: self.ableton.getTrack('slack').play_clip(name='3'))
         slackClipLength = 8 * 4
-        self.timeline.cueInBeats(slackClipLength, f=lambda: self.ableton.getTrack('slack').play_clip(name='2'))
-        self.timeline.cueInBeats(2 * slackClipLength, f=lambda: self.ableton.getTrack('slack').play_clip(name='1'))
+        self.timeline.cueIn(Beats(slackClipLength), lambda: self.ableton.getTrack('slack').play_clip(name='2'))
+        self.timeline.cueIn(Beats(2 * slackClipLength), lambda: self.ableton.getTrack('slack').play_clip(name='1'))
         self.flickerFixtureRandomlyUntil(self.spot1, 8 * AppWindow.ONE_MINUTE)
-        self.timeline.cueInSeconds(3 * AppWindow.ONE_MINUTE, f=self.playCopywold)
-        self.timeline.cueInSeconds(6 * AppWindow.ONE_MINUTE, f=self.playOfficeSpacePrinter)
-        self.timeline.cueInSeconds(8 * AppWindow.ONE_MINUTE, f=self.shutdown)
-        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.fadeFixture(self.spot1, 5, DmxLightboard.MAX_VALUE, 0))
-        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.fadeFixture(self.spot2, 5, DmxLightboard.MAX_VALUE, 0))
-        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, action=self.filterSweepMaster(1, Ableton.MAX_FILTER_FREQUENCY, Ableton.MIN_FILTER_FREQUENCY))
-        self.timeline.cueInSeconds(AppWindow.SHOW_LENGTH_SECONDS, f=self.stopPerformance)
+        self.timeline.cueIn(Seconds(3 * AppWindow.ONE_MINUTE), self.playCopywold)
+        self.timeline.cueIn(Seconds(6 * AppWindow.ONE_MINUTE), self.playOfficeSpacePrinter)
+        self.timeline.cueIn(Seconds(8 * AppWindow.ONE_MINUTE), self.shutdown)
+        self.timeline.cueIn(Seconds(AppWindow.SHOW_LENGTH_SECONDS), self.fadeFixture(self.spot1, 5, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cueIn(Seconds(AppWindow.SHOW_LENGTH_SECONDS), self.fadeFixture(self.spot2, 5, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cueIn(Seconds(AppWindow.SHOW_LENGTH_SECONDS), self.filterSweepMaster(1, Ableton.MAX_FILTER_FREQUENCY, Ableton.MIN_FILTER_FREQUENCY))
+        self.timeline.cueIn(Seconds(AppWindow.SHOW_LENGTH_SECONDS), self.stopPerformance)
 
     def flickerEverything(self):
         end = 0
         for fixture in random.sample(self.par38 + self.par64, 11):
             end = max(end, self.flickerFixtureRandomly(fixture, random.randint(1, 15)))
-        return end
+        return Seconds(end)
 
     def playCopywold(self):
         def setBpm(bpm):
             self.ableton.setBpm(bpm)
             self.executeOnUiThread(lambda: self.frameTimer.start(self.ableton.millisecondsPerBeat(bpm)))
         def body():
-            self.timeline.cue(f=lambda: self.ableton.playClip('808'))
+            self.ableton.playClip('808')
             track = self.ableton.getTrack('test')
             # startVolume = Ableton.ZERO_DB * 0.5
             # track.volume = startVolume
@@ -265,9 +264,9 @@ class AppWindow(QMainWindow):
             for i in range(len(bpm)):
                 def _setBpm(bpm):
                     return lambda: setBpm(bpm)
-                self.timeline.cueInBeats((i + 1) * 8, f=_setBpm(bpm[i]))
-            self.timeline.cueInBeats(len(bpm) * 8, f=lambda: self.muteEffect(beats=8))
-            self.timeline.cueInBeats(len(bpm) * 8 + 8, f=lambda: self.ableton.playClip('restart from crash'))
+                self.timeline.cueIn(Beats((i + 1) * 8), _setBpm(bpm[i]))
+            self.timeline.cueIn(Beats(len(bpm) * 8), lambda: self.muteEffect(Beats(8)))
+            self.timeline.cueIn(Beats(len(bpm) * 8 + 8), lambda: self.ableton.playClip('restart from crash'))
         def intro():
             self.executeOnUiThread(lambda: self.jitter(self.ableton.millisecondsPerBeat()))
             self.ableton.playClip('hihats L')
@@ -278,10 +277,10 @@ class AppWindow(QMainWindow):
     def playOfficeSpacePrinter(self):
         def sweepAndFlicker():
             self.sweepEffect()
-            self.executeOnUiThread(f=lambda: self.flicker(4))
+            self.executeOnUiThread(lambda: self.flicker(4))
         def restartWavetable():
             self.ableton.playClip('Wavetable')
-            self.executeOnUiThread(f=lambda: self.flicker(4))
+            self.executeOnUiThread(lambda: self.flicker(4))
         self.executeOnUiThread(lambda: self.stream())
         self.ableton.setBpm(40)
         # self.ableton.getGroup('=Office Space Printer').volume = 0
@@ -289,15 +288,15 @@ class AppWindow(QMainWindow):
         # self.timeline.cue(action=self.fadeVolume(self.ableton.getGroup('=Copywold'), 90, Ableton.ZERO_DB, 0))
         self.ableton.playClip('Wavetable')
         self.ableton.playClip('Office Space Printer')
-        self.timeline.cueInSeconds(30, f=sweepAndFlicker)
-        self.timeline.cueInSeconds(60, f=restartWavetable)
+        self.timeline.cueIn(Seconds(30), sweepAndFlicker)
+        self.timeline.cueIn(Seconds(60), restartWavetable)
 
     def playGrandPianoFinale(self):
         self.ableton.getTrack('grand piano').play_clip(name='5')
 
     def flickerOnFixture(self, fixture, flickerTimes):
         t = self.flickerFixtureRandomly(fixture, flickerTimes)
-        self.timeline.cueInSeconds(t, f=lambda: fixture.fullOn())
+        self.timeline.cueIn(Seconds(t), lambda: fixture.fullOn())
         return t
 
     def fadeVolume(self, track: live.Track, durationSeconds: float, startLevel: float, endLevel: float):
@@ -309,7 +308,7 @@ class AppWindow(QMainWindow):
         random.seed()
         t = minStride
         while t < end:
-            self.timeline.cueInSeconds(t, f=lambda: self.flickerFixture(fixture, 0.3))
+            self.timeline.cueIn(Seconds(t), lambda: self.flickerFixture(fixture, 0.3))
             t += random.uniform(minStride, maxStride)
 
     def flickerFixtureRandomly(self, fixture, times=1):
@@ -317,15 +316,15 @@ class AppWindow(QMainWindow):
         for i in range(times):
             random.seed()
             durationSeconds = random.uniform(AppWindow.FLICKER_DURATION[0], AppWindow.FLICKER_DURATION[1])
-            self.timeline.cueInSeconds(t, f=lambda: self.flickerFixture(fixture, durationSeconds))
+            self.timeline.cueIn(Seconds(t), lambda: self.flickerFixture(fixture, durationSeconds))
             delaySeconds = random.uniform(AppWindow.FLICKER_DELAY[0], AppWindow.FLICKER_DELAY[1])
             t += durationSeconds + delaySeconds
         return t
 
     def flickerFixture(self, fixture, durationSeconds):
         oldValues = fixture.values()
-        self.timeline.cue(f=lambda: fixture.fractional(0.75))
-        self.timeline.cueInSeconds(durationSeconds, f=lambda: fixture.set(oldValues))
+        self.timeline.cue(lambda: fixture.fractional(0.75))
+        self.timeline.cueIn(Seconds(durationSeconds), lambda: fixture.set(oldValues))
 
     def fadeFixture(self, fixture, durationSeconds, startLevel, endLevel):
         def updateFunction(value):
@@ -355,12 +354,12 @@ class AppWindow(QMainWindow):
         self.ableton.play()
         officalTestTrack = self.ableton.getTrack('official test')
         officalTestTrack.play_clip(name='official test')
-        self.timeline.cue(f=lambda: self.flickerFixtureRandomly(self.spot1, times=5))
-        self.timeline.cue(action=self.fadeVolume(officalTestTrack, 0, Ableton.ZERO_DB))
-        self.timeline.cueInSeconds(testLength/2, action=self.fadeVolume(officalTestTrack, testLength/2, Ableton.ZERO_DB, 0))
-        self.timeline.cue(action=self.fadeFixture(self.spot1, testLength/2, 0, DmxLightboard.MAX_VALUE))
-        self.timeline.cueInSeconds(testLength/2, action=self.fadeFixture(self.spot1, testLength/2, DmxLightboard.MAX_VALUE, 0))
-        self.timeline.cueInSeconds(testLength, f=stopTest)
+        self.timeline.cue(lambda: self.flickerFixtureRandomly(self.spot1, times=5))
+        self.timeline.cue(self.fadeVolume(officalTestTrack, 0, Ableton.ZERO_DB))
+        self.timeline.cueIn(Seconds(testLength/2), self.fadeVolume(officalTestTrack, testLength/2, Ableton.ZERO_DB, 0))
+        self.timeline.cue(self.fadeFixture(self.spot1, testLength/2, 0, DmxLightboard.MAX_VALUE))
+        self.timeline.cueIn(Seconds(testLength/2), self.fadeFixture(self.spot1, testLength/2, DmxLightboard.MAX_VALUE, 0))
+        self.timeline.cueIn(Seconds(testLength), stopTest)
         self.executeOnUiThread(lambda: self.stream())
 
     def stopVideo(self):
