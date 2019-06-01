@@ -25,6 +25,7 @@ class AppWindow(QMainWindow):
     FLICKER_CLOSE_TIMES = 5
     ONE_MINUTE = 60
     SHOW_LENGTH_SECONDS = 9 * ONE_MINUTE
+    DEFAULT_BPM = 20
 
     def __init__(self, appState, parent=None):
         QWidget.__init__(self, parent)
@@ -41,7 +42,7 @@ class AppWindow(QMainWindow):
         self.appTimer = None
         self.frameTimer = None
         self.ableton = Ableton()
-        self.ableton.setBpm(40)
+        self.ableton.setBpm(AppWindow.DEFAULT_BPM)
         self.ableton.start()
         self.timeline = Timeline(self.ableton)
         self.lightboard = None
@@ -166,8 +167,12 @@ class AppWindow(QMainWindow):
             self.setDrawState(DrawState.NOTHING)
             self.stop()
         self.start()
-        self.executeOnUiThread(lambda: self.stream())
-        self.timeline.cueIn(Seconds(60), lambda: stopTest())
+        self.ableton.playClip('Modular UI')
+        self.ableton.setBpm(60)
+        self.setDrawState(DrawState.RECORDING)
+        self.executeOnUiThread(lambda: self.videoArchive.play())
+        self.cycleVideoStreams()
+        self.timeline.cueIn(Seconds(AppWindow.SHOW_LENGTH_SECONDS), lambda: stopTest())
 
     def secondaryTest(self):
         def stopTest():
@@ -242,7 +247,7 @@ class AppWindow(QMainWindow):
         self.timeline.cueIn(Seconds(reentry), self.fadeFixture(self.spot2, reentryDuration, 0, DmxLightboard.MAX_VALUE))
         return reentry + reentryDuration
     def cycleVideoStreams(self):
-        self.timeline.cueIn(Seconds(8), lambda: self.cycleVideoStreams())
+        self.timeline.cueIn(Beats(4), lambda: self.cycleVideoStreams())
         self.videoArchive.next()
     def setBeatRepeat(self, enabled: bool):
         self.ableton.getTrack('bootup').get_device('Beat Repeat').enabled = enabled
@@ -301,16 +306,12 @@ class AppWindow(QMainWindow):
     def bootup(self):
         def pingPongBootup(bootupVolume: float = Ableton.ZERO_DB):
             if bootupVolume < math.pow(0.75, AppWindow.BOOTUP_REPEATS) * Ableton.ZERO_DB:
-                self.setPingPong(True)
                 self.normalOperations()
                 return
             self.ableton.getTrack('bootup').volume = bootupVolume
             self.bootupSound()
             self.executeOnUiThread(lambda: self.flicker(self.ableton.beatsToSeconds(4)))
             self.timeline.cueIn(Beats(4), lambda: pingPongBootup(bootupVolume * 0.75))
-        self.setBeatRepeat(False)
-        self.setPingPong(False)
-        self.setFreeze(False)
         self.bootupSound()
         self.executeOnUiThread(lambda: self.videoArchive.play())
         t = Seconds(self.flickerEverything())
@@ -362,13 +363,14 @@ class AppWindow(QMainWindow):
             track.volume = startVol
             track.play_clip(name='tone')
             self.timeline.cue(self.fadeVolume(track, 30, startVol, Ableton.ZERO_DB))
-            bpm = [40, 80, 120, 160, 320, 320, 320, 320, 40]
+            bpm = [40, 80, 120, 240, 240, 240, 40]
             for i in range(len(bpm)):
                 def _setBpm(bpm):
                     return lambda: setBpm(bpm)
                 self.timeline.cueIn(Beats((i + 1) * 8), _setBpm(bpm[i]))
+            self.timeline.cueIn(Beats(len(bpm) * 8 - 2), lambda: self.ableton.getTrack('windows').play_clip(name='error'))
+            self.timeline.cueIn(Beats(len(bpm) * 8 - 1), lambda: self.ableton.getTrack('windows').play_clip(name='error'))
             self.timeline.cueIn(Beats(len(bpm) * 8), lambda: self.muteEffect(Beats(8)))
-            self.timeline.cueIn(Beats(len(bpm) * 8), lambda: self.ableton.getTrack('windows').play_clip(name='error'))
             self.timeline.cueIn(Beats(len(bpm) * 8 + 8), lambda: self.ableton.playClip('restart from crash'))
         def intro():
             setBpm(40)
