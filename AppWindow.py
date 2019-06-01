@@ -51,8 +51,8 @@ class AppWindow(QMainWindow):
         except Exception as e:
             print(str(e))
             self.lightboard = GenericLightboard()
-        self.spot1 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=76)
-        self.spot2 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=51)
+        self.spot1 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=4) #76
+        self.spot2 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=61) #51
         self.par38 = [Par38(self.lightboard, channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]]
         self.par64 = [Par64(self.lightboard, channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]]
         self.uiThreadFunctions = []
@@ -247,8 +247,17 @@ class AppWindow(QMainWindow):
         self.timeline.cueIn(Seconds(reentry), self.fadeFixture(self.spot2, reentryDuration, 0, DmxLightboard.MAX_VALUE))
         return reentry + reentryDuration
     def cycleVideoStreams(self):
-        self.timeline.cueIn(Beats(4), lambda: self.cycleVideoStreams())
-        self.videoArchive.next()
+        length = Beats(3)
+        self.timeline.cueIn(length, lambda: self.cycleVideoStreams())
+        index = self.videoArchive.next()
+        if index == 0 and self.drawState == DrawState.RECORDING:
+            choice = random.choice([DrawState.RECORDING] * 3 + [DrawState.LIVE])
+            if choice == DrawState.LIVE:
+                def backToRecording():
+                    if self.drawState != DrawState.NOTHING:
+                        self.setDrawState(DrawState.RECORDING)
+                self.timeline.cueIn(length, backToRecording)
+                self.executeOnUiThread(lambda: self.stream())
     def setBeatRepeat(self, enabled: bool):
         self.ableton.getTrack('bootup').get_device('Beat Repeat').enabled = enabled
     def setPingPong(self, enabled: bool):
@@ -314,6 +323,7 @@ class AppWindow(QMainWindow):
             self.timeline.cueIn(Beats(4), lambda: pingPongBootup(bootupVolume * 0.75))
         self.bootupSound()
         self.executeOnUiThread(lambda: self.videoArchive.play())
+        self.ableton.playClip('furnace hum')
         t = Seconds(self.flickerEverything())
         self.timeline.cueIn(t, lambda: self.lightboard.blackout())
         self.timeline.cueIn(t, lambda: self.cycleVideoStreams())
@@ -394,6 +404,11 @@ class AppWindow(QMainWindow):
         self.ableton.getTrack('sin').volume = Ableton.ZERO_DB * 0.5
         self.ableton.getTrack('guitar').volume = Ableton.ZERO_DB * 0.5
         self.ableton.setBpm(20)
+        spacefolder = self.ableton.getTrack('Spacefolder')
+        spacefolder.volume = Ableton.ZERO_DB * 0.5
+        spacefolder.play_clip(name='1')
+        self.timeline.cue(self.fadeVolume(spacefolder, 10, spacefolder.volume, Ableton.ZERO_DB))
+        self.ableton.getTrack('Wavetable').volume = Ableton.ZERO_DB * 0.8
         self.ableton.playClip('Wavetable')
         self.ableton.playClip('Office Space Printer')
         self.timeline.cue(lambda: self.ableton.getTrack('dreams tonite').play_clip(name='tech bro 2'))

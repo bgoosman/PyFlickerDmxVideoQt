@@ -2,7 +2,7 @@ import cv2
 from pyCreative import *
 
 class VideoArchive:
-    def __init__(self, bufferSize=1, defaultFps=45.0):
+    def __init__(self, bufferSize=1, defaultFps=49):
         self.videos = []
         self.captures = []
         self.buffers = []
