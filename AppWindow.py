@@ -248,7 +248,9 @@ class AppWindow(QMainWindow):
         return reentry + reentryDuration
     def cycleVideoStreams(self):
         length = Beats(3)
-        self.timeline.cueIn(length, lambda: self.cycleVideoStreams())
+        action = SimpleAction(lambda: self.cycleVideoStreams())
+        action.isCycleAction = True
+        self.timeline.cueIn(length, action)
         index = self.videoArchive.next()
         if index == 0 and self.drawState == DrawState.RECORDING:
             choice = random.choice([DrawState.RECORDING] * 3 + [DrawState.LIVE])
@@ -323,6 +325,7 @@ class AppWindow(QMainWindow):
             self.timeline.cueIn(Beats(4), lambda: pingPongBootup(bootupVolume * 0.75))
         self.bootupSound()
         self.executeOnUiThread(lambda: self.videoArchive.play())
+        self.ableton.getTrack('furnace hum').volume = Ableton.ZERO_DB * 0.75
         self.ableton.playClip('furnace hum')
         t = Seconds(self.flickerEverything())
         self.timeline.cueIn(t, lambda: self.lightboard.blackout())
