@@ -342,6 +342,7 @@ class AppWindow(QMainWindow):
         self.timeline.cue(lambda: self.ableton.getTrack('moody piano').play_clip(name='1'))
         self.timeline.cue(lambda: self.ableton.getTrack('guitar').play_clip(name='1'))
         self.timeline.cue(lambda: self.ableton.getTrack('dreams tonite').play_clip(name='tech bro 1'))
+        self.timeline.cueIn(Seconds(AppWindow.ONE_MINUTE + 10), self.sweepAndFlicker)
         self.flickerFixtureRandomlyUntil(self.spot1, 8 * AppWindow.ONE_MINUTE)
         self.timeline.cueIn(Seconds(3 * AppWindow.ONE_MINUTE), self.playCopywold)
         self.timeline.cueIn(Seconds(6 * AppWindow.ONE_MINUTE), self.playOfficeSpacePrinter)
@@ -385,6 +386,9 @@ class AppWindow(QMainWindow):
             self.timeline.cueIn(Beats(len(bpm) * 8 - 1), lambda: self.ableton.getTrack('windows').play_clip(name='error'))
             self.timeline.cueIn(Beats(len(bpm) * 8), lambda: self.muteEffect(Beats(8)))
             self.timeline.cueIn(Beats(len(bpm) * 8 + 8), lambda: self.ableton.playClip('restart from crash'))
+            self.timeline.cueIn(Beats(len(bpm) * 8 + 8), lambda: self.setDrawState(DrawState.RECORDING))
+            self.timeline.cueIn(Beats(len(bpm) * 8 + 9), lambda: self.setDrawState(DrawState.RECORDING))
+            self.timeline.cueIn(Beats(len(bpm) * 8 + 10), lambda: self.setDrawState(DrawState.RECORDING))
         def intro():
             setBpm(40)
             self.ableton.getTrack('sin').volume = Ableton.ZERO_DB * 0.5
@@ -395,31 +399,32 @@ class AppWindow(QMainWindow):
             body()
         intro()
 
+    def sweepAndFlicker(self):
+        self.sweepEffect()
+        self.executeOnUiThread(lambda: self.flicker(4))
+        self.timeline.cueIn(Seconds(4), lambda: self.revertDrawState())
     def playOfficeSpacePrinter(self):
-        def sweepAndFlicker():
-            self.sweepEffect()
-            self.executeOnUiThread(lambda: self.flicker(4))
-            self.timeline.cueIn(Seconds(4), lambda: self.revertDrawState())
         def restartWavetable():
-            self.ableton.playClip('Wavetable')
+            self.ableton.playClip('Wavetable Bounced')
             self.executeOnUiThread(lambda: self.flicker(4))
             self.timeline.cueIn(Seconds(4), lambda: self.revertDrawState())
+        self.setDrawState(DrawState.RECORDING)
         self.ableton.getTrack('sin').volume = Ableton.ZERO_DB * 0.5
         self.ableton.getTrack('guitar').volume = Ableton.ZERO_DB * 0.5
         self.ableton.setBpm(20)
-        spacefolder = self.ableton.getTrack('Spacefolder')
+        spacefolder = self.ableton.getTrack('Spacefolder Bounced')
         spacefolder.volume = Ableton.ZERO_DB * 0.5
         spacefolder.play_clip(name='1')
         self.timeline.cue(self.fadeVolume(spacefolder, 10, spacefolder.volume, Ableton.ZERO_DB))
-        self.ableton.getTrack('Wavetable').volume = Ableton.ZERO_DB * 0.8
-        self.ableton.playClip('Wavetable')
+        self.ableton.getTrack('Wavetable Bounced').volume = Ableton.ZERO_DB * 0.8
+        self.ableton.playClip('Wavetable Bounced')
         self.ableton.playClip('Office Space Printer')
         self.timeline.cue(lambda: self.ableton.getTrack('dreams tonite').play_clip(name='tech bro 2'))
         clip = self.ableton.getTrack('slack').get_clip('1')
         clip.play()
         self.timeline.cueInBeats(20, lambda: self.ableton.getTrack('slack').play_clip(name='2'))
         self.timeline.cueInBeats(40, lambda: self.ableton.getTrack('slack').play_clip(name='3'))
-        self.timeline.cueIn(Seconds(30), sweepAndFlicker)
+        self.timeline.cueIn(Seconds(30), self.sweepAndFlicker)
         self.timeline.cueIn(Seconds(60), restartWavetable)
 
     def playGrandPianoFinale(self):
