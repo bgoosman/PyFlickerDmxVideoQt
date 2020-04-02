@@ -6,6 +6,7 @@ import live
 import math
 import random
 from VideoArchive import VideoArchive
+import LinkToPy
 
 frame_width = 1280
 frame_height = 720
@@ -27,45 +28,58 @@ class AppWindow(QMainWindow):
     SHOW_LENGTH_SECONDS = 9 * ONE_MINUTE
     DEFAULT_BPM = 20
 
-    def __init__(self, appState, parent=None):
+    def __init__(self, appState, parent=None, simulate=False):
+        self.simulate = simulate
+        random.seed(10)
+
         QWidget.__init__(self, parent)
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
         self.setBackgroundColor(Qt.black)
-        self.imageView = QLabel(centralWidget)
+        self.cv2 = cv2 if not simulate else MagicClass('cv2')
+        self.imageView = QLabel(centralWidget) if not simulate else MagicClass('QLabel')
         self.appState = appState
-        self.capture = cv2.VideoCapture(0)
-        self.videoBuffer = VideoBuffer(self.capture, 300)
-        self.videoBuffer.start()
-        self.videoHeader = VideoHeader(self.videoBuffer)
         self.frame = None
         self.appTimer = None
-        self.frameTimer = None
-        self.ableton = Ableton()
-        self.ableton.setBpm(AppWindow.DEFAULT_BPM)
-        self.ableton.start()
-        self.timeline = Timeline(self.ableton)
-        self.lightboard = None
-        try:
-            self.lightboard = DmxLightboard('/dev/cu.usbserial-6A3MRKF6')
-        except Exception as e:
-            print(str(e))
-            self.lightboard = GenericLightboard()
-        self.spot1 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=4) #76
-        self.spot2 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=61) #51
-        self.par38 = [Par38(self.lightboard, channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]]
-        self.par64 = [Par64(self.lightboard, channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]]
+        self.frameTimer = MagicClass('FrameTimer') if self.simulate else None
+        self.drawState = DrawState.NOTHING
+        self.lastDrawState = None
         self.uiThreadFunctions = []
         self.drawFrames = False
-        self.videoArchive = VideoArchive()
+        self.timerFactory = TimerFactory(simulate)
+        self.actionFactory = ActionFactory(simulate)
+
+        self.capture = cv2.VideoCapture(0)
+        self.videoBuffer = VideoBuffer(self.capture, 300) if not simulate else MagicClass('VideoBuffer')
+        self.videoBuffer.start()
+        self.videoHeader = VideoHeader(self.videoBuffer) if not simulate else MagicClass('VideoHeader')
+
+        self.link = LinkToPy.LinkInterface('/Applications/Carabiner') if not simulate else MockLink()
+        self.set = live.Set() if not simulate else MockSet()
+        self.ableton = Ableton(self.link, self.set, simulate)
+        self.ableton.setBpm(AppWindow.DEFAULT_BPM)
+        self.ableton.start()
+
+        self.timeline = Timeline(self.ableton) if not simulate else MockTimeline(self.ableton)
+
+        self.lightboard = None
+        try:
+            self.lightboard = DmxLightboard('/dev/cu.usbserial-6A3MRKF6') if not simulate else MagicClass('DmxLightboard')
+        except Exception as e:
+            print(str(e))
+            self.lightboard = GenericLightboard() if not simulate else MagicClass('GenericLightboard')
+        self.spot1 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=4)
+        self.spot2 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=61)
+        self.par38 = [Par38(self.lightboard, channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]]
+        self.par64 = [Par64(self.lightboard, channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]]
+
+        self.videoArchive = VideoArchive() if not simulate else MagicClass('VideoArchive')
         self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0002-empty.mp4')
         self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0003-se1.mov')
         self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0004-se2.mp4')
         self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0005-sandals.mp4')
         self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0006-tracksuit.mp4')
         self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0007-underwear.mp4')
-        self.drawState = DrawState.NOTHING
-        self.lastDrawState = None
 
     def setDrawState(self, state):
         print('setDrawState({})'.format(state))
@@ -106,7 +120,10 @@ class AppWindow(QMainWindow):
             self.imageView.clear()
 
     def executeOnUiThread(self, f):
-        self.uiThreadFunctions.append(f)
+        if (self.simulate):
+            f()
+        else:
+            self.uiThreadFunctions.append(f)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -161,6 +178,13 @@ class AppWindow(QMainWindow):
             self.stopPerformance()
         elif key == Qt.Key_P:
             self.startPerformance()
+        elif key == Qt.Key_S:
+            self.startSimulation()
+
+    def startSimulation(self):
+        self.startPerformance()
+        while not self.timeline.isEmpty():
+            self.timeline.cueNextAction()
 
     def thirdTest(self):
         def stopTest():
@@ -194,7 +218,8 @@ class AppWindow(QMainWindow):
         self.ableton.zeroAllTrackVolumes()
         self.ableton.play()
         self.ableton.waitForNextBeat()
-        self.startAppTimer()
+        if not self.simulate:
+            self.startAppTimer()
         self.bootup()
 
     def stopPerformance(self):
@@ -277,9 +302,8 @@ class AppWindow(QMainWindow):
     def fadeVolume(self, track: live.Track, durationSeconds: float, startLevel: float, endLevel: float):
         def updateFunction(value):
             track.volume = value
-        return LerpAction(durationSeconds, updateFunction, startLevel, endLevel)
+        return self.actionFactory.makeLerpAction(durationSeconds, updateFunction, startLevel, endLevel)
     def flickerFixtureRandomlyUntil(self, fixture, end, minStride=15, maxStride=ONE_MINUTE):
-        random.seed()
         t = minStride
         while t < end:
             self.timeline.cueIn(Seconds(t), lambda: self.flickerFixture(fixture, 0.3))
@@ -287,7 +311,6 @@ class AppWindow(QMainWindow):
     def flickerFixtureRandomly(self, fixture, times=1):
         t = 0.0
         for i in range(times):
-            random.seed()
             durationSeconds = random.uniform(AppWindow.FLICKER_DURATION[0], AppWindow.FLICKER_DURATION[1])
             self.timeline.cueIn(Seconds(t), lambda: self.flickerFixture(fixture, durationSeconds))
             delaySeconds = random.uniform(AppWindow.FLICKER_DELAY[0], AppWindow.FLICKER_DELAY[1])
@@ -305,14 +328,14 @@ class AppWindow(QMainWindow):
             fixture.green = value
             fixture.blue = value
             fixture.amber = value
-        return LerpAction(durationSeconds, updateFunction, startLevel, endLevel)
+        return self.actionFactory.makeLerpAction(durationSeconds, updateFunction, startLevel, endLevel)
     def setMasterFilterFrequency(self, frequency):
         frequency = self.ableton.clampFilterFrequency(frequency)
         self.ableton.getTrack('Master').get_device('Auto Filter').get_parameter_by_name('Frequency').value = frequency
     def filterSweepMaster(self, durationSeconds: float, startValue: float, endValue: float):
         def updateFunction(value):
             self.setMasterFilterFrequency(value)
-        return LerpAction(durationSeconds, updateFunction, startValue, endValue)
+        return self.actionFactory.makeLerpAction(durationSeconds, updateFunction, startValue, endValue)
 
     def bootup(self):
         def pingPongBootup(bootupVolume: float = Ableton.ZERO_DB):
@@ -462,31 +485,20 @@ class AppWindow(QMainWindow):
         def onTimeout():
             self.frame = videoHeader.getHead()
         milliseconds = MILLISECONDS_IN_SECOND / (self.videoBuffer.get_max_fps())
-        self.makeGlobalFrameTimer(milliseconds, onTimeout)
+        self.timerFactory.makeGlobalFrameTimer(milliseconds, onTimeout)
     def stream(self):
         print('stream')
         def onTimeout():
             self.frame = self.videoBuffer.get_last()
         self.setDrawState(DrawState.LIVE)
         milliseconds = MILLISECONDS_IN_SECOND / (self.videoBuffer.get_max_fps())
-        self.makeGlobalFrameTimer(milliseconds, onTimeout)
+        self.timerFactory.makeGlobalFrameTimer(milliseconds, onTimeout)
     def jitter(self, tickMilliseconds: float = 150.0):
         print('jitter {}'.format(tickMilliseconds))
         def onTimeout():
             self.frame = self.videoBuffer.get_last()
         self.setDrawState(DrawState.LIVE)
-        self.makeGlobalFrameTimer(tickMilliseconds, onTimeout)
-    def makeLocalFrameTimer(self, milliseconds, onTimeout):
-        localFrameTimer = QTimer()
-        localFrameTimer.timeout.connect(onTimeout)
-        localFrameTimer.start(int(milliseconds))
-        return localFrameTimer
-    def makeGlobalFrameTimer(self, milliseconds, onTimeout):
-        if self.frameTimer is not None:
-            self.frameTimer.stop()
-        self.frameTimer = QTimer()
-        self.frameTimer.timeout.connect(onTimeout)
-        self.frameTimer.start(int(milliseconds))
+        self.timerFactory.makeGlobalFrameTimer(tickMilliseconds, onTimeout)
 
     def setBackgroundColor(self, color):
         palette = self.palette()
@@ -529,3 +541,37 @@ class AppWindow(QMainWindow):
         frame = cv2.resize(frame, (scaled_width, scaled_height))
         qImage = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
         self.imageView.setPixmap(QPixmap.fromImage(qImage))
+
+class TimerFactory:
+    def __init__(self, simulate):
+        self.simulate = simulate
+        self.frameTimer = None
+
+    def makeLocalFrameTimer(self, milliseconds, onTimeout):
+        if (self.simulate):
+            onTimeout()
+            return
+        localFrameTimer = QTimer()
+        localFrameTimer.timeout.connect(onTimeout)
+        localFrameTimer.start(int(milliseconds))
+        return localFrameTimer
+
+    def makeGlobalFrameTimer(self, milliseconds, onTimeout):
+        if (self.simulate):
+            onTimeout()
+            return
+        if self.frameTimer is not None:
+            self.frameTimer.stop()
+        self.frameTimer = QTimer()
+        self.frameTimer.timeout.connect(onTimeout)
+        self.frameTimer.start(int(milliseconds))
+
+class ActionFactory:
+    def __init__(self, simulate):
+        self.simulate = simulate
+
+    def makeLerpAction(self, durationSeconds, updateFunction, start, end):
+        if self.simulate:
+            return InstantLerpAction(updateFunction, start, end)
+        else:
+            return LerpAction(durationSeconds, updateFunction, start, end)
