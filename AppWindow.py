@@ -1,12 +1,9 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from pyCreative import *
-import cv2
 import live
 import math
 import random
-from VideoArchive import VideoArchive
-import LinkToPy
 
 frame_width = 1280
 frame_height = 720
@@ -26,60 +23,40 @@ class AppWindow(QMainWindow):
     FLICKER_CLOSE_TIMES = 5
     ONE_MINUTE = 60
     SHOW_LENGTH_SECONDS = 9 * ONE_MINUTE
-    DEFAULT_BPM = 20
 
-    def __init__(self, appState, parent=None, simulate=False):
-        self.simulate = simulate
-        random.seed(10)
-
+    def __init__(self, appState, centralWidget, imageView, cv2, actionFactory, timerFactory,
+                 videoCapture, videoBuffer, videoHeader, link, set, ableton, timeline,
+                 lightboard, spot1, spot2, par38, par64, videoArchive,
+                 frameTimer=None, parent=None, simulate=False):
         QWidget.__init__(self, parent)
-        centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
         self.setBackgroundColor(Qt.black)
-        self.cv2 = cv2 if not simulate else MagicClass('cv2')
-        self.imageView = QLabel(centralWidget) if not simulate else MagicClass('QLabel')
+        self.cv2 = cv2
+        self.imageView = imageView
         self.appState = appState
         self.frame = None
         self.appTimer = None
-        self.frameTimer = MagicClass('FrameTimer') if self.simulate else None
+        self.frameTimer = frameTimer
         self.drawState = DrawState.NOTHING
         self.lastDrawState = None
         self.uiThreadFunctions = []
         self.drawFrames = False
-        self.timerFactory = TimerFactory(simulate)
-        self.actionFactory = ActionFactory(simulate)
-
-        self.capture = cv2.VideoCapture(0)
-        self.videoBuffer = VideoBuffer(self.capture, 300) if not simulate else MagicClass('VideoBuffer')
-        self.videoBuffer.start()
-        self.videoHeader = VideoHeader(self.videoBuffer) if not simulate else MagicClass('VideoHeader')
-
-        self.link = LinkToPy.LinkInterface('/Applications/Carabiner') if not simulate else MockLink()
-        self.set = live.Set() if not simulate else MockSet()
-        self.ableton = Ableton(self.link, self.set, simulate)
-        self.ableton.setBpm(AppWindow.DEFAULT_BPM)
-        self.ableton.start()
-
-        self.timeline = Timeline(self.ableton) if not simulate else MockTimeline(self.ableton)
-
-        self.lightboard = None
-        try:
-            self.lightboard = DmxLightboard('/dev/cu.usbserial-6A3MRKF6') if not simulate else MagicClass('DmxLightboard')
-        except Exception as e:
-            print(str(e))
-            self.lightboard = GenericLightboard() if not simulate else MagicClass('GenericLightboard')
-        self.spot1 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=4)
-        self.spot2 = ChauvetOvationE910FC(dmx=self.lightboard, startChannel=61)
-        self.par38 = [Par38(self.lightboard, channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]]
-        self.par64 = [Par64(self.lightboard, channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]]
-
-        self.videoArchive = VideoArchive() if not simulate else MagicClass('VideoArchive')
-        self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0002-empty.mp4')
-        self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0003-se1.mov')
-        self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0004-se2.mp4')
-        self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0005-sandals.mp4')
-        self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0006-tracksuit.mp4')
-        self.videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0007-underwear.mp4')
+        self.actionFactory = actionFactory
+        self.timerFactory = timerFactory
+        self.videoCapture = videoCapture
+        self.videoBuffer = videoBuffer
+        self.videoHeader = videoHeader
+        self.link = link
+        self.set = set
+        self.ableton = ableton
+        self.timeline = timeline
+        self.lightboard = lightboard
+        self.spot1 = spot1
+        self.spot2 = spot2
+        self.par38 = par38
+        self.par64 = par64
+        self.videoArchive = videoArchive
+        self.simulate = simulate
 
     def setDrawState(self, state):
         print('setDrawState({})'.format(state))
@@ -178,13 +155,7 @@ class AppWindow(QMainWindow):
             self.stopPerformance()
         elif key == Qt.Key_P:
             self.startPerformance()
-        elif key == Qt.Key_S:
-            self.startSimulation()
 
-    def startSimulation(self):
-        self.startPerformance()
-        while not self.timeline.isEmpty():
-            self.timeline.cueNextAction()
 
     def thirdTest(self):
         def stopTest():
@@ -519,7 +490,7 @@ class AppWindow(QMainWindow):
         self.ableton.stopAllClips()
         self.ableton.cleanup()
         self.ableton.join()
-        self.capture.release()
+        self.videoCapture.release()
         self.videoArchive.cleanup()
         self.appState.quit()
 
@@ -542,36 +513,3 @@ class AppWindow(QMainWindow):
         qImage = QImage(frame, frame.shape[1], frame.shape[0], frame.strides[0], QImage.Format_RGB888)
         self.imageView.setPixmap(QPixmap.fromImage(qImage))
 
-class TimerFactory:
-    def __init__(self, simulate):
-        self.simulate = simulate
-        self.frameTimer = None
-
-    def makeLocalFrameTimer(self, milliseconds, onTimeout):
-        if (self.simulate):
-            onTimeout()
-            return
-        localFrameTimer = QTimer()
-        localFrameTimer.timeout.connect(onTimeout)
-        localFrameTimer.start(int(milliseconds))
-        return localFrameTimer
-
-    def makeGlobalFrameTimer(self, milliseconds, onTimeout):
-        if (self.simulate):
-            onTimeout()
-            return
-        if self.frameTimer is not None:
-            self.frameTimer.stop()
-        self.frameTimer = QTimer()
-        self.frameTimer.timeout.connect(onTimeout)
-        self.frameTimer.start(int(milliseconds))
-
-class ActionFactory:
-    def __init__(self, simulate):
-        self.simulate = simulate
-
-    def makeLerpAction(self, durationSeconds, updateFunction, start, end):
-        if self.simulate:
-            return InstantLerpAction(updateFunction, start, end)
-        else:
-            return LerpAction(durationSeconds, updateFunction, start, end)
