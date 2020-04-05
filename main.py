@@ -12,6 +12,7 @@ from AppState import *
 from AppWindow import *
 from ActionFactory import *
 from TimerFactory import *
+from VideoArchive import *
 
 simulate = False
 if "--simulate" in sys.argv:
