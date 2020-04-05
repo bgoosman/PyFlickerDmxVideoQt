@@ -2,9 +2,7 @@ QLabel
 cv2
 FrameTimer
 cv2::VideoCapture(0)
-VideoBuffer
-VideoBuffer::start
-VideoHeader
+VideoStream
 MockLink
 MockLink::bpm_=0
 MockSet
@@ -88,7 +86,7 @@ VideoArchive::append(/Users/admin/Dropbox/Software Engineer/C0005-sandals.mp4)
 VideoArchive::append(/Users/admin/Dropbox/Software Engineer/C0006-tracksuit.mp4)
 VideoArchive::append(/Users/admin/Dropbox/Software Engineer/C0007-underwear.mp4)
 QLabel::setFixedSize(PyQt5.QtCore.QSize(200, 112))
-QLabel::setFixedSize(PyQt5.QtCore.QSize(1680, 945))
+QLabel::setFixedSize(PyQt5.QtCore.QSize(2560, 1440))
 MockLink::bpm_=20
 DmxLightboard::blackout
 MockSet::get_track(Master)
@@ -547,50 +545,50 @@ MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip
 flickering 12.0
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(12.0)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(12.0)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::volume=0.66
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip
 flickering 12.0
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(12.0)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(12.0)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::volume=0.495
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip
 flickering 12.0
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(12.0)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(12.0)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::volume=0.37124999999999997
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip
 flickering 12.0
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(12.0)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(12.0)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::volume=0.2784375
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip
 flickering 12.0
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(12.0)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(12.0)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 setDrawState(DrawState.RECORDING)
 MockSet::get_track(Modular UI)
 MockSet::get_track(Modular UI)::play_clip
@@ -654,10 +652,10 @@ DmxLightboard::setChannel(64,0)
 DmxLightboard::setChannel(65,0)
 flickering 4
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(4)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(4)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 DmxLightboard::setChannel(4,191)
 DmxLightboard::setChannel(5,191)
 DmxLightboard::setChannel(6,191)
@@ -867,10 +865,10 @@ DmxLightboard::setChannel(64,0)
 DmxLightboard::setChannel(65,0)
 flickering 4
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(4)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(4)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 DmxLightboard::setChannel(4,191)
 DmxLightboard::setChannel(5,191)
 DmxLightboard::setChannel(6,191)
@@ -925,10 +923,10 @@ MockSet::get_track(Wavetable Bounced)
 MockSet::get_track(Wavetable Bounced)::play_clip
 flickering 4
 setDrawState(DrawState.LIVE)
-VideoHeader::setDelaySeconds(4)
-VideoHeader::start
-VideoBuffer::get_max_fps
-VideoHeader::getHead
+VideoStream::setDelaySeconds(4)
+VideoStream::start
+VideoStream::getMaxFps
+VideoStream::getHead
 MockSet::get_track(slack)
 MockSet::get_track(slack)::play_clip
 DmxLightboard::setChannel(4,191)

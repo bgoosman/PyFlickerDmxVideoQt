@@ -7,10 +7,11 @@ import LinkToPy
 from PyQt5.QtWidgets import *
 from pyCreative.MagicClass import *
 from pyCreative.Timeline import *
+from pyCreative.VideoStream import *
 
+from ActionFactory import *
 from AppState import *
 from AppWindow import *
-from ActionFactory import *
 from TimerFactory import *
 from VideoArchive import *
 
@@ -30,9 +31,7 @@ actionFactory = ActionFactory(simulate)
 timerFactory = TimerFactory(simulate)
 frameTimer = MagicClass('FrameTimer') if simulate else None
 videoCapture = cv2.VideoCapture(0)
-videoBuffer = VideoBuffer(videoCapture, 300) if not simulate else MagicClass('VideoBuffer')
-videoBuffer.start()
-videoHeader = VideoHeader(videoBuffer) if not simulate else MagicClass('VideoHeader')
+videoStream = VideoStream(videoCapture) if not simulate else MagicClass('VideoStream')
 link = LinkToPy.LinkInterface('/Applications/Carabiner') if not simulate else MockLink()
 set = live.Set() if not simulate else MockSet()
 ableton = Ableton(link, set, simulate)
@@ -63,9 +62,7 @@ appWindow = AppWindow(
     actionFactory=actionFactory,
     timerFactory=timerFactory,
     frameTimer=frameTimer,
-    videoCapture=videoCapture,
-    videoBuffer=videoBuffer,
-    videoHeader=videoHeader,
+    videoStream=videoStream,
     link=link,
     set=set,
     ableton=ableton,

@@ -25,7 +25,7 @@ class AppWindow(QMainWindow):
     SHOW_LENGTH_SECONDS = 9 * ONE_MINUTE
 
     def __init__(self, appState, centralWidget, imageView, cv2, actionFactory, timerFactory,
-                 videoCapture, videoBuffer, videoHeader, link, set, ableton, timeline,
+                 videoStream, link, set, ableton, timeline,
                  lightboard, spot1, spot2, par38, par64, videoArchive,
                  frameTimer=None, parent=None, simulate=False):
         QWidget.__init__(self, parent)
@@ -43,9 +43,7 @@ class AppWindow(QMainWindow):
         self.drawFrames = False
         self.actionFactory = actionFactory
         self.timerFactory = timerFactory
-        self.videoCapture = videoCapture
-        self.videoBuffer = videoBuffer
-        self.videoHeader = videoHeader
+        self.videoStream = videoStream
         self.link = link
         self.set = set
         self.ableton = ableton
@@ -449,25 +447,25 @@ class AppWindow(QMainWindow):
     def flicker(self, delaySeconds: float = 4):
         print('flickering {}'.format(delaySeconds))
         self.setDrawState(DrawState.LIVE)
-        self.videoHeader.setDelaySeconds(delaySeconds)
-        self.videoHeader.start()
-        self.streamVideoHeader(self.videoHeader)
-    def streamVideoHeader(self, videoHeader):
+        self.videoStream.setDelaySeconds(delaySeconds)
+        self.videoStream.start()
+        self.streamVideoToScreen()
+    def streamVideoToScreen(self):
         def onTimeout():
-            self.frame = videoHeader.getHead()
-        milliseconds = MILLISECONDS_IN_SECOND / (self.videoBuffer.get_max_fps())
+            self.frame = self.videoStream.getHead()
+        milliseconds = MILLISECONDS_IN_SECOND / (self.videoStream.getMaxFps())
         self.timerFactory.makeGlobalFrameTimer(milliseconds, onTimeout)
     def stream(self):
         print('stream')
         def onTimeout():
-            self.frame = self.videoBuffer.get_last()
+            self.frame = self.videoStream.getLast()
         self.setDrawState(DrawState.LIVE)
-        milliseconds = MILLISECONDS_IN_SECOND / (self.videoBuffer.get_max_fps())
+        milliseconds = MILLISECONDS_IN_SECOND / (self.videoStream.getMaxFps())
         self.timerFactory.makeGlobalFrameTimer(milliseconds, onTimeout)
     def jitter(self, tickMilliseconds: float = 150.0):
         print('jitter {}'.format(tickMilliseconds))
         def onTimeout():
-            self.frame = self.videoBuffer.get_last()
+            self.frame = self.videoStream.getLast()
         self.setDrawState(DrawState.LIVE)
         self.timerFactory.makeGlobalFrameTimer(tickMilliseconds, onTimeout)
 
@@ -484,13 +482,11 @@ class AppWindow(QMainWindow):
             self.appTimer.stop()
         if self.frameTimer is not None:
             self.frameTimer.stop()
-        self.videoBuffer.cleanup()
-        self.videoBuffer.join()
+        self.videoStream.cleanup()
         self.ableton.zeroAllTrackVolumes()
         self.ableton.stopAllClips()
         self.ableton.cleanup()
         self.ableton.join()
-        self.videoCapture.release()
         self.videoArchive.cleanup()
         self.appState.quit()
 
