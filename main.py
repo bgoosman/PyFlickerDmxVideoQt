@@ -65,7 +65,6 @@ appWindow = AppWindow(
     timerFactory=timerFactory,
     frameTimer=frameTimer,
     videoStream=videoStream,
-    set=set,
     ableton=ableton,
     timeline=timeline,
     lightboard=lightboard,
