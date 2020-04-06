@@ -5,6 +5,7 @@ import cv2
 import live
 import LinkToPy
 from PyQt5.QtWidgets import *
+from pyCreative.Lightboard import *
 from pyCreative.MagicClass import *
 from pyCreative.Timeline import *
 from pyCreative.VideoStream import *
@@ -38,15 +39,16 @@ ableton = Ableton(link, set, simulate)
 ableton.setBpm(DEFAULT_BPM)
 ableton.start()
 timeline = Timeline(ableton) if not simulate else MockTimeline(ableton)
+lightboard = None
 try:
-    lightboard = DmxLightboard('/dev/cu.usbserial-6A3MRKF6') if not simulate else MagicClass('DmxLightboard')
+    lightboard = DmxLightboard('/dev/cu.usbserial-6A3MRKF6')
 except Exception as e:
+    lightboard = Lightboard()
     print(str(e))
-    lightboard = GenericLightboard() if not simulate else MagicClass('GenericLightboard')
-spot1 = ChauvetOvationE910FC(dmx=lightboard, startChannel=4)
-spot2 = ChauvetOvationE910FC(dmx=lightboard, startChannel=61)
-par38 = [Par38(lightboard, channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]]
-par64 = [Par64(lightboard, channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]]
+lightboard.addFixture('spot1', ChauvetOvationE910FC(dmx=lightboard, startChannel=4) if not simulate else MagicClass('spot1'))
+lightboard.addFixture('spot2', ChauvetOvationE910FC(dmx=lightboard, startChannel=61) if not simulate else MagicClass('spot2'))
+lightboard.addFixture('par38', [Par38(lightboard, channel) if not simulate else MagicClass('Par38.%d' % channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]])
+lightboard.addFixture('par64', [Par64(lightboard, channel) if not simulate else MagicClass('Par64.%d' % channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]])
 videoArchive = VideoArchive() if not simulate else MagicClass('VideoArchive')
 videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0002-empty.mp4')
 videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0003-se1.mov')
@@ -63,15 +65,10 @@ appWindow = AppWindow(
     timerFactory=timerFactory,
     frameTimer=frameTimer,
     videoStream=videoStream,
-    link=link,
     set=set,
     ableton=ableton,
     timeline=timeline,
     lightboard=lightboard,
-    spot1=spot1,
-    spot2=spot2,
-    par38=par38,
-    par64=par64,
     videoArchive=videoArchive,
     simulate=simulate
 )

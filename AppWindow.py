@@ -25,8 +25,7 @@ class AppWindow(QMainWindow):
     SHOW_LENGTH_SECONDS = 9 * ONE_MINUTE
 
     def __init__(self, appState, centralWidget, imageView, cv2, actionFactory, timerFactory,
-                 videoStream, link, set, ableton, timeline,
-                 lightboard, spot1, spot2, par38, par64, videoArchive,
+                 videoStream, set, ableton, timeline, lightboard, videoArchive,
                  frameTimer=None, parent=None, simulate=False):
         QWidget.__init__(self, parent)
         self.setCentralWidget(centralWidget)
@@ -44,15 +43,14 @@ class AppWindow(QMainWindow):
         self.actionFactory = actionFactory
         self.timerFactory = timerFactory
         self.videoStream = videoStream
-        self.link = link
         self.set = set
         self.ableton = ableton
         self.timeline = timeline
         self.lightboard = lightboard
-        self.spot1 = spot1
-        self.spot2 = spot2
-        self.par38 = par38
-        self.par64 = par64
+        self.spot1 = self.lightboard.getFixture('spot1')
+        self.spot2 = self.lightboard.getFixture('spot2')
+        self.par38 = self.lightboard.getFixture('par38')
+        self.par64 = self.lightboard.getFixture('par64')
         self.videoArchive = videoArchive
         self.simulate = simulate
 
