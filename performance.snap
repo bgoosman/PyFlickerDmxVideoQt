@@ -50,9 +50,9 @@ MockSet::get_track(furnace hum)
 MockSet::get_track(furnace hum)::volume=0.66
 MockSet::get_track(furnace hum)
 MockSet::get_track(furnace hum)::play_clip{'name': 'furnace hum'}
-VideoArchive::play
 Par64.142::values
 Par64.142::fractional(0.75)
+VideoArchive::play
 Par38.226::values
 Par38.226::fractional(0.75)
 Par64.136::values
@@ -284,7 +284,7 @@ MockSet::get_track(bootup)::volume=0.88
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip{'name': 'mac'}
 flickering 12.0
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(12.0)
 VideoStream::start
 VideoStream::getMaxFps
@@ -294,7 +294,7 @@ MockSet::get_track(bootup)::volume=0.66
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip{'name': 'mac'}
 flickering 12.0
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(12.0)
 VideoStream::start
 VideoStream::getMaxFps
@@ -304,7 +304,7 @@ MockSet::get_track(bootup)::volume=0.495
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip{'name': 'mac'}
 flickering 12.0
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(12.0)
 VideoStream::start
 VideoStream::getMaxFps
@@ -314,7 +314,7 @@ MockSet::get_track(bootup)::volume=0.37124999999999997
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip{'name': 'mac'}
 flickering 12.0
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(12.0)
 VideoStream::start
 VideoStream::getMaxFps
@@ -324,12 +324,12 @@ MockSet::get_track(bootup)::volume=0.2784375
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::play_clip{'name': 'mac'}
 flickering 12.0
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(12.0)
 VideoStream::start
 VideoStream::getMaxFps
 VideoStream::getHead
-setDrawState(DrawState.RECORDING)
+setCameraState(CameraState.RECORDING)
 MockSet::get_track(Modular UI)
 MockSet::get_track(Modular UI)::play_clip{'name': 'Modular UI'}
 MockSet::get_track(sin)
@@ -383,7 +383,7 @@ spot2::blue=0
 spot2::amber=0
 VideoArchive::getHead
 flickering 4
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(4)
 VideoStream::start
 VideoStream::getMaxFps
@@ -448,28 +448,28 @@ MockSet::get_track(test)::play_clip{'name': 'tone'}
 MockSet::get_track(test)::volume=0.44
 MockSet::get_track(test)::volume=0.88
 VideoArchive::getHead
-FrameTimer::start(1500.0)
+Restarting frameTimer to 1500 milliseconds
 MockSet::get_track(808)
 MockSet::get_track(808)::play_clip{'name': '808'}
 VideoArchive::getHead
 MockLink::bpm_=40
 VideoArchive::getHead
-FrameTimer::start(1500.0)
+Restarting frameTimer to 1500 milliseconds
 MockLink::bpm_=80
 VideoArchive::getHead
-FrameTimer::start(750.0)
+Restarting frameTimer to 750 milliseconds
 MockLink::bpm_=120
 VideoArchive::getHead
-FrameTimer::start(500.0)
+Restarting frameTimer to 500 milliseconds
 MockLink::bpm_=240
 VideoArchive::getHead
-FrameTimer::start(250.0)
+Restarting frameTimer to 250 milliseconds
 MockLink::bpm_=240
 VideoArchive::getHead
-FrameTimer::start(250.0)
+Restarting frameTimer to 250 milliseconds
 MockLink::bpm_=240
 VideoArchive::getHead
-FrameTimer::start(250.0)
+Restarting frameTimer to 250 milliseconds
 MockSet::get_track(windows)
 MockSet::get_track(windows)::play_clip{'name': 'error'}
 VideoArchive::getHead
@@ -478,30 +478,25 @@ MockSet::get_track(windows)::play_clip{'name': 'error'}
 VideoArchive::getHead
 MockLink::bpm_=40
 VideoArchive::getHead
-FrameTimer::start(1500.0)
+Restarting frameTimer to 1500 milliseconds
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)::value=20
-setDrawState(DrawState.NOTHING)
+setCameraState(CameraState.NOTHING)
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)::value=135
 VideoArchive::getHead
-setDrawState(DrawState.RECORDING)
+setCameraState(CameraState.RECORDING)
 VideoArchive::getHead
 MockSet::get_track(restart from crash)
 MockSet::get_track(restart from crash)::play_clip{'name': 'restart from crash'}
 VideoArchive::getHead
-setDrawState(DrawState.RECORDING)
+setCameraState(CameraState.RECORDING)
 VideoArchive::getHead
-setDrawState(DrawState.RECORDING)
-VideoArchive::getHead
-spot1::values
-spot1::fractional(0.75)
-VideoArchive::getHead
-spot1::set(spot1::values)
+setCameraState(CameraState.RECORDING)
 VideoArchive::getHead
 spot1::values
 spot1::fractional(0.75)
@@ -518,7 +513,12 @@ spot1::fractional(0.75)
 VideoArchive::getHead
 spot1::set(spot1::values)
 VideoArchive::getHead
-setDrawState(DrawState.RECORDING)
+spot1::values
+spot1::fractional(0.75)
+VideoArchive::getHead
+spot1::set(spot1::values)
+VideoArchive::getHead
+setCameraState(CameraState.RECORDING)
 MockSet::get_track(sin)
 MockSet::get_track(sin)::volume=0.44
 MockSet::get_track(guitar)
@@ -571,7 +571,7 @@ spot2::blue=0
 spot2::amber=0
 VideoArchive::getHead
 flickering 4
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(4)
 VideoStream::start
 VideoStream::getMaxFps
@@ -618,7 +618,7 @@ MockSet::get_track(Wavetable Bounced)
 MockSet::get_track(Wavetable Bounced)::play_clip{'name': 'Wavetable Bounced'}
 VideoArchive::getHead
 flickering 4
-setDrawState(DrawState.LIVE)
+setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(4)
 VideoStream::start
 VideoStream::getMaxFps
@@ -705,7 +705,7 @@ MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)::value=20
-setDrawState(DrawState.NOTHING)
+setCameraState(CameraState.NOTHING)
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)

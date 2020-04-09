@@ -6,7 +6,7 @@ class TimerFactory:
         self.frameTimer = None
 
     def makeLocalFrameTimer(self, milliseconds, onTimeout):
-        if (self.simulate):
+        if self.simulate:
             onTimeout()
             return
         localFrameTimer = QTimer()
@@ -15,7 +15,7 @@ class TimerFactory:
         return localFrameTimer
 
     def makeGlobalFrameTimer(self, milliseconds, onTimeout):
-        if (self.simulate):
+        if self.simulate:
             onTimeout()
             return
         if self.frameTimer is not None:
@@ -23,3 +23,12 @@ class TimerFactory:
         self.frameTimer = QTimer()
         self.frameTimer.timeout.connect(onTimeout)
         self.frameTimer.start(int(milliseconds))
+
+    def restart(self, milliseconds):
+        print('Restarting frameTimer to %d milliseconds' % milliseconds)
+        if self.frameTimer:
+            self.frameTimer.start(milliseconds)
+
+    def stop(self):
+        if self.frameTimer:
+            self.frameTimer.stop()
