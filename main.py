@@ -26,13 +26,13 @@ app = QApplication([])
 appState = AppState(app)
 DEFAULT_BPM = 20
 centralWidget = QWidget()
-imageView = QLabel(centralWidget) if not simulate else MagicClass('QLabel')
-cv2 = cv2 if not simulate else MagicClass('cv2')
+imageView = QLabel(centralWidget)
 actionFactory = ActionFactory(simulate)
 timerFactory = TimerFactory(simulate)
 frameTimer = MagicClass('FrameTimer') if simulate else None
 videoCapture = cv2.VideoCapture(0)
-videoStream = VideoStream(videoCapture) if not simulate else MagicClass('VideoStream')
+frame = cv2.imread('cat.jpg')
+videoStream = VideoStream(videoCapture) if not simulate else MockVideoStream('VideoStream', frame)
 link = LinkToPy.LinkInterface('/Applications/Carabiner') if not simulate else MockLink()
 set = live.Set() if not simulate else MockSet()
 ableton = Ableton(link, set, simulate)
@@ -49,7 +49,7 @@ lightboard.addFixture('spot1', ChauvetOvationE910FC(dmx=lightboard, startChannel
 lightboard.addFixture('spot2', ChauvetOvationE910FC(dmx=lightboard, startChannel=61) if not simulate else MagicClass('spot2'))
 lightboard.addFixture('par38', [Par38(lightboard, channel) if not simulate else MagicClass('Par38.%d' % channel) for channel in [221, 226, 11, 16, 31, 96, 91, 86, 46, 71]])
 lightboard.addFixture('par64', [Par64(lightboard, channel) if not simulate else MagicClass('Par64.%d' % channel) for channel in [121, 126, 131, 136, 116, 111, 101, 139, 142]])
-videoArchive = VideoArchive() if not simulate else MagicClass('VideoArchive')
+videoArchive = VideoArchive() if not simulate else MockVideoArchive('VideoArchive', frame)
 videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0002-empty.mp4')
 videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0003-se1.mov')
 videoArchive.append('/Users/admin/Dropbox/Software Engineer/C0004-se2.mp4')
@@ -71,10 +71,12 @@ appWindow = AppWindow(
     videoArchive=videoArchive,
     simulate=simulate
 )
+if simulate:
+    appWindow.frame = frame
 appWindow.showFullScreen()
 appWindow.startPerformance()
 if simulate:
     while not timeline.isEmpty():
-        timeline.cueNextAction()
+        appWindow.update()
     exit(0)
 app.exit(app.exec_())

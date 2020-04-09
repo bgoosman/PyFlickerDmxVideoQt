@@ -473,8 +473,5 @@ class AppWindow(QMainWindow):
             self.imageView.clear()
 
     def executeOnUiThread(self, f):
-        if (self.simulate):
-            f()
-        else:
-            self.uiThreadFunctions.append(f)
+        self.uiThreadFunctions.append(f)
 

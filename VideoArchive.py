@@ -1,6 +1,15 @@
 import cv2
 from pyCreative import *
 
+class MockVideoArchive(MagicClass):
+    def __init__(self, name, frame):
+        MagicClass.__init__(self, name)
+        self.__dict__['frame'] = frame
+
+    def getFrame(self):
+        self.log('getHead')
+        return self.frame
+
 class VideoArchive:
     def __init__(self, bufferSize=1, defaultFps=49):
         self.videos = []
