@@ -312,86 +312,19 @@ class AppWindow(QMainWindow):
         self.setDrawState(DrawState.LIVE)
         milliseconds = MILLISECONDS_IN_SECOND / (self.videoStream.getMaxFps())
         self.timerFactory.makeGlobalFrameTimer(milliseconds, onTimeout)
-    def jitter(self, tickMilliseconds: float = 150.0):
-        print('jitter {}'.format(tickMilliseconds))
-        def onTimeout():
-            self.frame = self.videoStream.getLast()
-        self.setDrawState(DrawState.LIVE)
-        self.timerFactory.makeGlobalFrameTimer(tickMilliseconds, onTimeout)
 
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key_Q:
-            self.quit()
-        elif key == Qt.Key_BracketLeft:
-            self.stop()
-        elif key == Qt.Key_BracketRight:
-            self.start()
-        elif key == Qt.Key_F:
-            self.flicker(0)
-        elif key == Qt.Key_J:
-            self.jitter()
-        elif key == Qt.Key_N:
-            self.stream()
+            Event('quit')
         elif key == Qt.Key_Semicolon:
-            self.ableton.scan()
+            Event('scanAbletonSet')
         elif key == Qt.Key_Apostrophe:
-            self.ableton.set.save()
-        elif key == Qt.Key_T:
-            self.test()
-        elif key == Qt.Key_A:
-            self.setDrawState(DrawState.RECORDING)
-            if not self.videoArchive.playing:
-                self.videoArchive.play()
-        elif key == Qt.Key_Right:
-            self.setDrawState(DrawState.RECORDING)
-            self.videoArchive.next()
-        elif key == Qt.Key_Left:
-            self.setDrawState(DrawState.RECORDING)
-            self.videoArchive.previous()
-        elif key == Qt.Key_V:
-            value = 255
-            self.lightboard.blackout()
-            self.spot1.dimmer = value
-            self.spot1.red = value
-            self.spot1.green = value
-            self.spot1.blue = value
-            self.spot1.amber = value
-            self.spot2.dimmer = value
-            self.spot2.red = value
-            self.spot2.green = value
-            self.spot2.blue = value
-            self.spot2.amber = value
-        elif key == Qt.Key_B:
-            self.lightboard.blackout()
-        elif key == Qt.Key_Y:
-            self.secondaryTest()
-        elif key == Qt.Key_U:
-            self.thirdTest()
+            Event('saveAbletonSet')
         elif key == Qt.Key_O:
-            self.stopPerformance()
+            Event('stopPerformance')
         elif key == Qt.Key_P:
-            self.startPerformance()
-
-    def test(self):
-        def stopTest():
-            if self.frameTimer is not None:
-                self.frameTimer.stop()
-                self.frameTimer = None
-            self.setDrawState(DrawState.NOTHING)
-        testLength = 10
-        self.ableton.stopAllClips()
-        self.ableton.zeroAllTrackVolumes()
-        self.ableton.play()
-        officalTestTrack = self.ableton.getTrack('official test')
-        officalTestTrack.play_clip(name='official test')
-        self.timeline.cue(lambda: self.flickerFixtureRandomly(self.spot1, times=5))
-        self.timeline.cue(self.fadeVolume(officalTestTrack, 0, Ableton.ZERO_DB))
-        self.timeline.cueIn(Seconds(testLength/2), self.fadeVolume(officalTestTrack, testLength/2, Ableton.ZERO_DB, 0))
-        self.timeline.cue(self.fadeFixture(self.spot1, testLength/2, 0, DmxLightboard.MAX_VALUE))
-        self.timeline.cueIn(Seconds(testLength/2), self.fadeFixture(self.spot1, testLength/2, DmxLightboard.MAX_VALUE, 0))
-        self.timeline.cueIn(Seconds(testLength), stopTest)
-        self.executeOnUiThread(lambda: self.stream())
+            Event('startPerformance')
 
     def setBackgroundColor(self, color):
         palette = self.palette()
@@ -451,20 +384,11 @@ class AppWindow(QMainWindow):
         if self.appTimer is not None:
             self.appTimer.stop()
 
-    def start(self):
-        self.ableton.play()
-        self.startAppTimer()
-
-    def stop(self):
-        self.ableton.stop()
-        self.stopAppTimer()
-
     def update(self):
+        Event('appWindowUpdate')
         for f in self.uiThreadFunctions:
             f()
         self.uiThreadFunctions = []
-        self.timeline.update()
-        self.lightboard.update()
         if self.drawState == DrawState.RECORDING:
             self.setCv2Frame(self.videoArchive.getFrame())
         elif self.drawState == DrawState.LIVE and self.frame is not None:
