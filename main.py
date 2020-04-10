@@ -199,7 +199,7 @@ class SoftwareEngineerPerformance(Observer):
         def restartWavetable():
             self.ableton.playClip('Wavetable Bounced')
             self.appWindow.executeOnUiThread(lambda: self.flicker(4))
-            self.timeline.cueIn(Seconds(4), lambda: self.revertDrawState())
+            self.timeline.cueIn(Seconds(4), lambda: self.revertCameraState())
         self.setCameraState(CameraState.RECORDING)
         self.ableton.getTrack('sin').volume = Ableton.ZERO_DB * 0.5
         self.ableton.getTrack('guitar').volume = Ableton.ZERO_DB * 0.5
@@ -242,9 +242,7 @@ class SoftwareEngineerPerformance(Observer):
     def sweepAndFlicker(self):
         self.sweepEffect()
         self.appWindow.executeOnUiThread(lambda: self.flicker(4))
-        self.timeline.cueIn(Seconds(4), lambda: self.revertDrawState())
-    def playGrandPianoFinale(self):
-        self.ableton.getTrack('grand piano').play_clip(name='5')
+        self.timeline.cueIn(Seconds(4), lambda: self.revertCameraState())
     def flickerEverything(self):
         end = 0
         for fixture in random.sample(self.par38 + self.par64, 11):
@@ -253,7 +251,7 @@ class SoftwareEngineerPerformance(Observer):
     def toggleAudioVisual(self, enabled):
         if enabled:
             self.setMasterFilterFrequency(Ableton.MAX_FILTER_FREQUENCY)
-            self.revertDrawState()
+            self.revertCameraState()
         else:
             self.setMasterFilterFrequency(0)
             self.setCameraState(CameraState.NOTHING)
@@ -376,7 +374,7 @@ class SoftwareEngineerPerformance(Observer):
         self.lastCameraState = self.cameraState
         self.cameraState = state
 
-    def revertDrawState(self):
+    def revertCameraState(self):
         self.cameraState = self.lastCameraState
 
     def scanAbletonSet(self):
