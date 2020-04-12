@@ -8,11 +8,13 @@ MILLISECONDS_IN_SECOND = 1000.0
 UPDATES_PER_SECOND = 300.0
 
 class AppWindow(QMainWindow):
-    def __init__(self, centralWidget, imageView):
+    def __init__(self):
         QWidget.__init__(self, None)
-        self.setCentralWidget(centralWidget)
+        self.centralWidget = QWidget()
+        self.imageView = QLabel(self.centralWidget)
+        self.setCentralWidget(self.centralWidget)
         self.setBackgroundColor(Qt.black)
-        self.imageView = imageView
+        self.imageView = self.imageView
         self.appTimer = None
         self.uiThreadFunctions = []
 
