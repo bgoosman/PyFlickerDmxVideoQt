@@ -258,16 +258,6 @@ Par38.16::set(Par38.16::values)
 Par38.16::values
 Par38.16::fractional(0.75)
 Par38.16::set(Par38.16::values)
-spot2::dimmer=0
-spot2::red=0
-spot2::green=0
-spot2::blue=0
-spot2::amber=0
-spot2::dimmer=255
-spot2::red=255
-spot2::green=255
-spot2::blue=255
-spot2::amber=255
 VideoArchive::next
 spot1::dimmer=0
 spot1::red=0
@@ -279,6 +269,16 @@ spot1::red=255
 spot1::green=255
 spot1::blue=255
 spot1::amber=255
+spot2::dimmer=0
+spot2::red=0
+spot2::green=0
+spot2::blue=0
+spot2::amber=0
+spot2::dimmer=255
+spot2::red=255
+spot2::green=255
+spot2::blue=255
+spot2::amber=255
 MockSet::get_track(bootup)
 MockSet::get_track(bootup)::volume=0.88
 MockSet::get_track(bootup)
@@ -342,17 +342,17 @@ MockSet::get_track(guitar)
 MockSet::get_track(guitar)::play_clip{'name': '1'}
 MockSet::get_track(dreams tonite)
 MockSet::get_track(dreams tonite)::play_clip{'name': 'tech bro 1'}
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
@@ -381,7 +381,7 @@ spot2::red=0
 spot2::green=0
 spot2::blue=0
 spot2::amber=0
-VideoArchive::getHead
+VideoArchive::getFrame
 flickering 4
 setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(4)
@@ -394,6 +394,16 @@ spot1::set(spot1::values)
 spot2::values
 spot2::fractional(0.75)
 spot2::set(spot2::values)
+spot1::dimmer=0
+spot1::red=0
+spot1::green=0
+spot1::blue=0
+spot1::amber=0
+spot1::dimmer=255
+spot1::red=255
+spot1::green=255
+spot1::blue=255
+spot1::amber=255
 spot2::dimmer=0
 spot2::red=0
 spot2::green=0
@@ -412,28 +422,17 @@ MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)::value=135
-spot1::dimmer=0
-spot1::red=0
-spot1::green=0
-spot1::blue=0
-spot1::amber=0
-spot1::dimmer=255
-spot1::red=255
-spot1::green=255
-spot1::blue=255
-spot1::amber=255
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
-MockLink::bpm_=40
+VideoArchive::getFrame
 MockSet::get_track(sin)
 MockSet::get_track(sin)::volume=0.44
 MockSet::get_track(guitar)
@@ -447,38 +446,37 @@ MockSet::get_track(test)::volume=0.44
 MockSet::get_track(test)::play_clip{'name': 'tone'}
 MockSet::get_track(test)::volume=0.44
 MockSet::get_track(test)::volume=0.88
-VideoArchive::getHead
+VideoArchive::getFrame
+MockLink::bpm_=40
+VideoArchive::getFrame
 Restarting frameTimer to 1500 milliseconds
 MockSet::get_track(808)
 MockSet::get_track(808)::play_clip{'name': '808'}
-VideoArchive::getHead
+VideoArchive::getFrame
 MockLink::bpm_=40
-VideoArchive::getHead
+VideoArchive::getFrame
 Restarting frameTimer to 1500 milliseconds
 MockLink::bpm_=80
-VideoArchive::getHead
+VideoArchive::getFrame
 Restarting frameTimer to 750 milliseconds
 MockLink::bpm_=120
-VideoArchive::getHead
+VideoArchive::getFrame
 Restarting frameTimer to 500 milliseconds
 MockLink::bpm_=240
-VideoArchive::getHead
+VideoArchive::getFrame
 Restarting frameTimer to 250 milliseconds
 MockLink::bpm_=240
-VideoArchive::getHead
+VideoArchive::getFrame
 Restarting frameTimer to 250 milliseconds
 MockLink::bpm_=240
-VideoArchive::getHead
+VideoArchive::getFrame
 Restarting frameTimer to 250 milliseconds
 MockSet::get_track(windows)
 MockSet::get_track(windows)::play_clip{'name': 'error'}
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(windows)
 MockSet::get_track(windows)::play_clip{'name': 'error'}
-VideoArchive::getHead
-MockLink::bpm_=40
-VideoArchive::getHead
-Restarting frameTimer to 1500 milliseconds
+VideoArchive::getFrame
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
@@ -488,36 +486,39 @@ MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)::value=135
-VideoArchive::getHead
-setCameraState(CameraState.RECORDING)
-VideoArchive::getHead
+VideoArchive::getFrame
+MockLink::bpm_=40
+VideoArchive::getFrame
+Restarting frameTimer to 1500 milliseconds
 MockSet::get_track(restart from crash)
 MockSet::get_track(restart from crash)::play_clip{'name': 'restart from crash'}
-VideoArchive::getHead
+VideoArchive::getFrame
 setCameraState(CameraState.RECORDING)
-VideoArchive::getHead
+VideoArchive::getFrame
 setCameraState(CameraState.RECORDING)
-VideoArchive::getHead
+VideoArchive::getFrame
+setCameraState(CameraState.RECORDING)
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 setCameraState(CameraState.RECORDING)
 MockSet::get_track(sin)
 MockSet::get_track(sin)::volume=0.44
@@ -538,9 +539,10 @@ MockSet::get_track(Office Space Printer)::play_clip{'name': 'Office Space Printe
 MockSet::get_track(dreams tonite)
 MockSet::get_track(dreams tonite)::play_clip{'name': 'tech bro 2'}
 MockSet::get_track(slack)
-MockSet::get_track(slack)::get_clip(1)
-MockSet::get_track(slack)::get_clip(1)::play
-VideoArchive::getHead
+MockSet::get_track(slack)::play_clip{'name': '1'}
+MockSet::get_track(slack)
+MockSet::get_track(slack)::play_clip{'name': '1'}
+VideoArchive::getFrame
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)
@@ -569,7 +571,7 @@ spot2::red=0
 spot2::green=0
 spot2::blue=0
 spot2::amber=0
-VideoArchive::getHead
+VideoArchive::getFrame
 flickering 4
 setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(4)
@@ -610,46 +612,46 @@ spot2::red=255
 spot2::green=255
 spot2::blue=255
 spot2::amber=255
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(slack)
 MockSet::get_track(slack)::play_clip{'name': '2'}
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(Wavetable Bounced)
 MockSet::get_track(Wavetable Bounced)::play_clip{'name': 'Wavetable Bounced'}
-VideoArchive::getHead
+VideoArchive::getFrame
 flickering 4
 setCameraState(CameraState.LIVE)
 VideoStream::setDelaySeconds(4)
 VideoStream::start
 VideoStream::getMaxFps
 VideoStream::getHead
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(slack)
 MockSet::get_track(slack)::play_clip{'name': '3'}
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(grand piano)
 MockSet::get_track(grand piano)::play_clip{'name': '5'}
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::values
 spot1::fractional(0.75)
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::set(spot1::values)
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_group(=Office Space Printer)
 MockSet::get_group(=Office Space Printer)::volume=0.88
 MockSet::get_group(=Office Space Printer)::volume=0.396
@@ -666,19 +668,19 @@ MockSet::get_group(=Office Space Printer)
 MockSet::get_group(=Copywold)
 MockSet::get_group(=Ambient Foley)
 MockSet::get_group(=Beats)
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_group(=Office Space Printer)::volume=0.396
 MockSet::get_group(=Office Space Printer)::volume=0
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_group(=Copywold)::volume=0.396
 MockSet::get_group(=Copywold)::volume=0
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_group(=Ambient Foley)::volume=0.396
 MockSet::get_group(=Ambient Foley)::volume=0
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_group(=Beats)::volume=0.396
 MockSet::get_group(=Beats)::volume=0
-VideoArchive::getHead
+VideoArchive::getFrame
 spot1::dimmer=255
 spot1::red=255
 spot1::green=255
@@ -689,7 +691,7 @@ spot1::red=0
 spot1::green=0
 spot1::blue=0
 spot1::amber=0
-VideoArchive::getHead
+VideoArchive::getFrame
 spot2::dimmer=255
 spot2::red=255
 spot2::green=255
@@ -700,7 +702,7 @@ spot2::red=0
 spot2::green=0
 spot2::blue=0
 spot2::amber=0
-VideoArchive::getHead
+VideoArchive::getFrame
 MockSet::get_track(Master)
 MockSet::get_track(Master)::get_device(Auto Filter)
 MockSet::get_track(Master)::get_device(Auto Filter)::get_parameter_by_name(Frequency)

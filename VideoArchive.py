@@ -7,7 +7,7 @@ class MockVideoArchive(MagicClass):
         self.__dict__['frame'] = frame
 
     def getFrame(self):
-        self.log('getHead')
+        self.log('getFrame')
         return self.frame
 
 class VideoArchive:
